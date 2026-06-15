@@ -572,10 +572,10 @@ async function generatePoster(score, title) {
     const bgImg = new Image();
     await new Promise((resolve) => { bgImg.onload = resolve; bgImg.onerror = resolve; bgImg.src = './assets/分享海报背景.jpg'; });
     if (bgImg.width > 0) ctx.drawImage(bgImg, 0, 0, W, H);
-    ctx.fillStyle = 'rgba(255,255,255,0.16)';
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
     ctx.fillRect(0, 0, W, H);
   } catch(e) {}
-  // 圆角矩形辅助
+  // 圆角矩形辅助（仅称号高亮胶囊使用）
   const rr = (x, y, w, h, r) => {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -585,21 +585,7 @@ async function generatePoster(score, title) {
     ctx.arcTo(x, y, x + w, y, r);
     ctx.closePath();
   };
-
-  // ── 中央证书卡片 ──
-  const panelX = 76, panelY = 250, panelW = W - 152, panelH = 832;
-  ctx.save();
-  ctx.shadowColor = 'rgba(29,53,87,0.12)';
-  ctx.shadowBlur = 30;
-  ctx.shadowOffsetY = 10;
-  ctx.fillStyle = 'rgba(255,255,255,0.86)';
-  rr(panelX, panelY, panelW, panelH, 34);
-  ctx.fill();
-  ctx.restore();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = 'rgba(29,53,87,0.10)';
-  rr(panelX, panelY, panelW, panelH, 34);
-  ctx.stroke();
+  const panelX = 76;
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
