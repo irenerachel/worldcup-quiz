@@ -249,8 +249,13 @@ let posterBlob = null;
 // ── Audio (Web Audio API synthetic SFX) ──
 let audioCtx = null;
 function initAudio() {
-  if (audioCtx) return;
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  // Safari / 部分浏览器创建后是 suspended 状态，必须在用户手势里 resume 才会出声
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
 }
 function playTone(freq, duration, type, vol) {
   if (!audioCtx) return;
@@ -310,6 +315,8 @@ function sfxResult() {
 }
 let state = { screen:'splash', idx:0, score:0, answers:[], answering:false };
 
+// 开场视频是否正在播放的标记，避免开始/结束被重复触发
+let introStarted = false;
 // 答题流程里所有定时器统一登记，回首页时一次性清掉，避免遗留回调把人弹回题目
 let quizTimers = [];
 function qTimeout(fn, ms) { const id = setTimeout(fn, ms); quizTimers.push(id); return id; }
@@ -386,6 +393,7 @@ function downloadBlob(blob, filename) {
 
 function goHome() {
   clearQuizTimers();
+  introStarted = false;
   state.answering = false;
   state.idx = 0; state.score = 0; state.answers = [];
   feedbackToast.classList.remove('show');
@@ -393,25 +401,35 @@ function goHome() {
   $('quiz-card').classList.remove('slide-in','slide-out');
   videoOverlay.classList.remove('active');
   splashVideo.pause();
-  splashVideo.currentTime = 0;
+  // 彻底重置视频元素，保证下次「开始挑战」开场视频能从头正常播放
+  try { splashVideo.load(); } catch(e) {}
   switchScreen('splash');
 }
 
-$('btn-start').addEventListener('click', () => {
+function beginChallenge() {
+  if (introStarted) return;          // 防止重复点击
   initAudio();
+  introStarted = true;
   videoOverlay.classList.add('active');
-  splashVideo.currentTime = 0;
-  splashVideo.play().catch(() => {
-    videoOverlay.classList.remove('active');
-    startQuiz();
-  });
-});
+  try { splashVideo.currentTime = 0; } catch(e) {}
+  const p = splashVideo.play();
+  if (p && typeof p.catch === 'function') {
+    p.catch(() => endIntro());        // 视频无法播放时直接进入答题
+  }
+}
+
+function endIntro() {
+  if (!introStarted) return;          // 已经结束 / 已回首页就不再触发
+  introStarted = false;
+  videoOverlay.classList.remove('active');
+  splashVideo.pause();
+  startQuiz();
+}
+
+$('btn-start').addEventListener('click', beginChallenge);
 
 splashVideo.addEventListener('ended', () => {
-  setTimeout(() => {
-    videoOverlay.classList.remove('active');
-    startQuiz();
-  }, 80);
+  setTimeout(endIntro, 80);
 });
 
 function startQuiz() {
@@ -450,6 +468,7 @@ function renderQuestion() {
 function handleAnswer(selected) {
   if (state.answering) return;
   state.answering = true;
+  initAudio();
   sfxClick();
   const q = QUESTIONS[state.idx];
   const correct = selected === q.answer;
