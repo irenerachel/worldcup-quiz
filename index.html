@@ -117,6 +117,7 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 .result-btns button{width:100%;padding:14px;border:none;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .1s}
 .result-btns button:active{transform:scale(.97)}
 .result-btns .btn-share{background:#457B9D;color:#fff;box-shadow:0 4px 0 #2C5F7C}
+.result-btns .btn-qr{background:#E9C46A;color:#1D3557;box-shadow:0 4px 0 #C4A040}
 .result-btns .btn-save{background:#6A994E;color:#fff;box-shadow:0 4px 0 #4F7639}
 .result-btns .btn-retry{background:rgba(255,255,255,.8);color:#1D3557;border:2px solid rgba(0,0,0,.08)}
 .home-btn{position:fixed;left:14px;bottom:18px;z-index:70;display:none;align-items:center;gap:5px;padding:7px 10px 8px;border:2px solid rgba(255,255,255,.9);border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,247,229,.92));color:#1D3557;font-size:13px;font-weight:900;box-shadow:0 4px 0 rgba(29,53,87,.12),0 10px 22px rgba(0,0,0,.12);backdrop-filter:blur(8px);cursor:pointer}
@@ -202,6 +203,7 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
     <div class="result-poster" id="result-poster"></div>
     <div class="result-btns">
       <button class="btn-share" id="btn-share">📤 分享给朋友</button>
+      <button class="btn-qr" id="btn-qr-share">📲 二维码分享</button>
       <button class="btn-save" id="btn-save">💾 保存图片</button>
       <button class="btn-retry" id="btn-retry">🔄 再来一次</button>
     </div>
@@ -250,6 +252,9 @@ const LETTERS = ['A','B','C','D'];
 const cleanOptionLabel = text => text.replace(/（[^）]*）/g, '').replace(/\s*\([^)]*\)/g, '').trim();
 const SHARE_URL = 'https://irenerachel.github.io/worldcup-quiz/';
 let posterBlob = null;
+let shareText = '20 道题，测测你是几级球迷！';  // 根据答题结果动态更新
+let resultScore = 0;
+let resultTitle = null;
 
 // ── Audio (Web Audio API synthetic SFX) ──
 let audioCtx = null;
@@ -382,7 +387,7 @@ function canvasToBlob(canvas) {
 
 async function copyShareUrl() {
   try {
-    await navigator.clipboard.writeText(SHARE_URL);
+    await navigator.clipboard.writeText(`${shareText} ${SHARE_URL}`);
     return true;
   } catch(e) {
     return false;
@@ -539,6 +544,10 @@ function showResult() {
   switchScreen('result');
   const score = state.score;
   const title = TITLES.find(t => score >= t.min && score <= t.max);
+  const rank = title.title.replace(/^[^一-鿿A-Za-z0-9]+/, '').trim();
+  shareText = `我测了一下，是「${rank}」，你也来挑战世界杯球迷答题吧！`;
+  resultScore = score;
+  resultTitle = title;
   $('res-score').textContent = score + '/20';
   $('res-label').textContent = score <= 4 ? '加油！' : score <= 8 ? '还不错！' : score <= 12 ? '可以啊！' : score <= 16 ? '厉害了！' : '太强了！';
   $('res-title').textContent = title.title;
@@ -558,7 +567,7 @@ function showResult() {
   sfxResult();
 }
 
-async function generatePoster(score, title) {
+async function drawPoster(score, title, withQr) {
   if (document.fonts && document.fonts.ready) {
     try { await document.fonts.ready; } catch(e) {}
   }
@@ -637,17 +646,42 @@ async function generatePoster(score, title) {
   ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(panelX + 56, 1006); ctx.lineTo(W - panelX - 56, 1006); ctx.stroke();
 
-  // 底部引导语
-  ctx.fillStyle = '#457B9D';
-  ctx.font = '800 30px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText('20 道题测测你是几级球迷', W/2, 1062);
+  if (withQr) {
+    // 二维码 + 邀请语
+    try {
+      const qr = new Image();
+      await new Promise((resolve) => { qr.onload = resolve; qr.onerror = resolve; qr.src = './assets/二维码.png'; });
+      if (qr.width > 0) {
+        const qs = 150, qx = W/2 - qs/2, qy = 1024;
+        ctx.fillStyle = '#FFFFFF';      // 扫码留白区，保证清晰可扫
+        rr(qx - 12, qy - 12, qs + 24, qs + 24, 14);
+        ctx.fill();
+        ctx.drawImage(qr, qx, qy, qs, qs);
+      }
+    } catch(e) {}
+    ctx.fillStyle = '#457B9D';
+    ctx.font = '800 28px -apple-system,BlinkMacSystemFont,sans-serif';
+    ctx.fillText('扫码一起来挑战', W/2, 1226);
+  } else {
+    // 底部引导语
+    ctx.fillStyle = '#457B9D';
+    ctx.font = '800 30px -apple-system,BlinkMacSystemFont,sans-serif';
+    ctx.fillText('20 道题测测你是几级球迷', W/2, 1062);
+  }
 
   // 页脚
   ctx.fillStyle = '#8A8A8A';
   ctx.font = '24px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText('公众号 @阿真Irene', W/2, H - 92);
-  posterBlob = await canvasToBlob(canvas);
+  ctx.fillText('公众号 @阿真Irene', W/2, withQr ? H - 48 : H - 92);
+
+  const blob = await canvasToBlob(canvas);
   const dataUrl = canvas.toDataURL('image/png');
+  return { blob, dataUrl };
+}
+
+async function generatePoster(score, title) {
+  const { blob, dataUrl } = await drawPoster(score, title, false);
+  posterBlob = blob;
   $('result-poster').innerHTML = `<img src="${dataUrl}" alt="我的成绩">`;
   $('result-poster').dataset.dataUrl = dataUrl;
   return dataUrl;
@@ -657,14 +691,38 @@ $('btn-share').addEventListener('click', async () => {
   const btn = $('btn-share');
   try {
     if (navigator.share) {
-      await navigator.share({title:'世界杯球迷挑战',text:'20 道题，测测你是几级球迷！',url:SHARE_URL});
+      await navigator.share({title:'世界杯球迷挑战',text:shareText,url:SHARE_URL});
     } else {
       const copied = await copyShareUrl();
-      flashButton(btn, copied ? '链接已复制' : '复制失败');
+      flashButton(btn, copied ? '文案已复制' : '复制失败');
     }
   } catch(e) {
     const copied = await copyShareUrl();
-    flashButton(btn, copied ? '链接已复制' : '分享取消');
+    flashButton(btn, copied ? '文案已复制' : '分享取消');
+  }
+});
+
+$('btn-qr-share').addEventListener('click', async () => {
+  const btn = $('btn-qr-share');
+  if (!resultTitle) { showToast('图片还在生成'); return; }
+  try {
+    const { blob } = await drawPoster(resultScore, resultTitle, true);
+    const file = new File([blob], '世界杯球迷挑战.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: '世界杯球迷挑战', text: shareText });
+    } else if (window.showSaveFilePicker) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: '世界杯球迷挑战_二维码.png',
+        types: [{description:'PNG 图片', accept:{'image/png':['.png']}}]
+      });
+      const w = await handle.createWritable(); await w.write(blob); await w.close();
+      showToast('二维码图片已保存，可发给好友');
+    } else {
+      downloadBlob(blob, '世界杯球迷挑战_二维码.png');
+      showToast('二维码图片已保存，可发给好友');
+    }
+  } catch(e) {
+    showToast('已取消或失败，可重试');
   }
 });
 
