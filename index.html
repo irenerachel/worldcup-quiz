@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta property="og:title" content="世界杯球迷挑战">
+<meta property="og:description" content="20 道题，测测你是几级球迷">
+<meta property="og:url" content="https://cola-dispatch.marswave-543.workers.dev/app-a50303/">
+<meta property="og:image" content="https://cola-dispatch.marswave-543.workers.dev/app-a50303/assets/社交分享封面.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="世界杯球迷挑战">
+<meta name="twitter:description" content="20 道题，测测你是几级球迷">
+<meta name="twitter:image" content="https://cola-dispatch.marswave-543.workers.dev/app-a50303/assets/社交分享封面.jpg">
+<link rel="canonical" href="https://cola-dispatch.marswave-543.workers.dev/app-a50303/">
+<link rel="icon" href="./assets/飞行足球_抠图透明.png">
+<link rel="preload" as="image" href="./assets/开场封面.png">
+<title>世界杯球迷挑战</title>
+<style>
+@font-face{font-family:'HouZunSongTi';src:url('./assets/HouZunSongTi.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+
+#loading-screen{position:fixed;inset:0;z-index:200;background:#F5F0E8;transition:opacity .35s ease,visibility .35s ease}
+#loading-screen.hide{opacity:0;visibility:hidden;pointer-events:none}
+#loading-screen img{width:100%;height:100%;object-fit:cover;display:block}
+
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:10}
+.screen.active{opacity:1;pointer-events:auto}
+
+/* ── splash ── */
+#screen-splash{background:#F5F0E8}
+#screen-splash .splash-wrap{position:absolute;inset:0;z-index:1}
+#screen-splash .splash-wrap img{width:100%;height:100%;object-fit:cover}
+#screen-splash .splash-overlay{position:absolute;inset:0;z-index:2;text-align:center;padding:126px 32px 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+#screen-splash .splash-logo{width:144px;height:144px;margin:18px auto 96px;animation:logoBounce 2s ease-in-out infinite}
+#screen-splash .splash-logo img{width:100%;height:100%;object-fit:contain}
+#screen-splash .splash-title{font-family:'PingFang SC','Hiragino Sans GB','Heiti SC',sans-serif;font-size:38px;font-weight:900;line-height:1.08;color:#102A43;text-shadow:0 3px 0 rgba(255,255,255,.72),0 5px 12px rgba(16,42,67,.18);letter-spacing:0;margin-bottom:10px}
+#screen-splash .splash-sub{font-family:'PingFang SC','Hiragino Sans GB','Heiti SC',sans-serif;font-size:17px;color:#5B8E3E;font-weight:800;margin-bottom:0}
+#screen-splash .splash-btn{display:inline-block;padding:16px 56px;background:#E63946;color:#fff;font-size:20px;font-weight:700;border:none;border-radius:50px;cursor:pointer;box-shadow:0 6px 0 #B71C1C,0 8px 20px rgba(230,57,70,.3);transition:transform .1s,box-shadow .1s;position:relative;letter-spacing:2px}
+#screen-splash .splash-btn:active{transform:translateY(3px);box-shadow:0 3px 0 #B71C1C,0 4px 10px rgba(230,57,70,.2)}
+#screen-splash .splash-footer{position:absolute;bottom:24px;z-index:2;font-size:12px;color:#999;text-align:center;width:100%}
+
+#screen-splash .splash-sticker{position:absolute;z-index:3;animation:stickerFloat 3s ease-in-out infinite}
+#screen-splash .splash-sticker img{width:100%;height:100%;object-fit:contain}
+@keyframes logoBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes stickerFloat{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-10px) rotate(5deg)}}
+
+/* video overlay */
+#video-overlay{position:fixed;inset:0;z-index:100;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center}
+#video-overlay.active{display:flex}
+#video-overlay video{width:100%;height:100%;object-fit:cover}
+
+/* ── quiz ── */
+#screen-quiz{position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:10}
+#screen-quiz.active{opacity:1;pointer-events:auto}
+#screen-quiz .quiz-bg{position:absolute;inset:0;z-index:0}
+#screen-quiz .quiz-bg img{width:100%;height:100%;object-fit:cover}
+.quiz-boy{position:absolute;left:50%;bottom:38px;z-index:1;width:min(42vw,168px);transform:translateX(-50%);pointer-events:none;animation:boySway 3.2s ease-in-out infinite;filter:drop-shadow(0 8px 12px rgba(0,0,0,.12))}
+.quiz-boy img{width:100%;height:auto;display:block}
+.quiz-scroll{position:relative;z-index:2;flex:1;overflow-y:auto;display:flex;flex-direction:column;padding:58px 16px 170px;-webkit-overflow-scrolling:touch}
+.quiz-progress{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-shrink:0}
+.quiz-progress .ball{width:28px;height:28px;flex-shrink:0}
+.quiz-progress .ball img{width:100%;height:100%;object-fit:contain;animation:ballSpin 1.5s linear infinite}
+@keyframes ballSpin{to{transform:rotate(360deg)}}
+.quiz-progress .bar-wrap{flex:1;height:8px;background:rgba(0,0,0,.08);border-radius:4px;overflow:hidden}
+.quiz-progress .bar-fill{height:100%;background:linear-gradient(90deg,#E63946,#E9C46A,#6A994E);border-radius:4px;transition:width .4s ease;width:0%}
+.quiz-progress .count{font-size:13px;font-weight:700;color:#457B9D;white-space:nowrap;min-width:42px;text-align:right}
+
+.quiz-card{background:rgba(255,255,255,.92);border-radius:20px;padding:24px 20px;box-shadow:0 4px 24px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.04);margin-bottom:12px;transition:transform .3s ease,opacity .3s ease;flex-shrink:0}
+.quiz-card.slide-out{transform:translateX(-120%);opacity:0}
+.quiz-card.slide-in{animation:slideIn .4s ease forwards}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+.quiz-card .q-num{font-size:12px;font-weight:700;color:#E63946;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.quiz-card .q-text{font-size:19px;font-weight:700;line-height:1.5;color:#1D3557}
+
+.quiz-options{display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.quiz-options .opt{display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,255,255,.88);border:2px solid rgba(0,0,0,.06);border-radius:14px;font-size:16px;font-weight:600;color:#1D3557;cursor:pointer;transition:background .2s,border-color .2s,transform .1s}
+.quiz-options .opt:active{transform:scale(.98)}
+.quiz-options .opt .opt-letter{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;color:#fff}
+.quiz-options .opt:nth-child(1) .opt-letter{background:#E63946}
+.quiz-options .opt:nth-child(2) .opt-letter{background:#457B9D}
+.quiz-options .opt:nth-child(3) .opt-letter{background:#E9C46A;color:#1D3557}
+.quiz-options .opt:nth-child(4) .opt-letter{background:#6A994E}
+.quiz-options .opt.correct{background:#E8F5E9;border-color:#6A994E}
+.quiz-options .opt.wrong{background:#FFEBEE;border-color:#E63946}
+.quiz-options .opt.reveal-correct{background:#E8F5E9;border-color:#6A994E}
+.quiz-options .opt.disabled{pointer-events:none}
+
+/* feedback toast */
+.feedback-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);z-index:50;padding:20px 32px;border-radius:20px;text-align:center;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.feedback-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.feedback-toast.correct{background:#6A994E;color:#fff}
+.feedback-toast.wrong{background:#E63946;color:#fff}
+.feedback-toast .fb-icon{width:76px;height:76px;display:block;margin:0 auto 6px}
+.feedback-toast .fb-icon img{width:100%;height:100%;object-fit:contain;display:block}
+.feedback-toast .fb-tip{font-size:14px;opacity:.9;margin-top:8px;max-width:260px}
+
+/* ── result ── */
+#screen-result{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:10;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#screen-result.active{opacity:1;pointer-events:auto}
+#screen-result .result-bg{position:absolute;inset:0;z-index:0}
+#screen-result .result-bg img{width:100%;height:100%;object-fit:cover}
+.result-inner{position:relative;z-index:2;text-align:center;padding:20px 20px 36px;width:100%}
+.result-inner .res-score{font-size:72px;font-weight:900;color:#E63946;line-height:1;margin-bottom:4px}
+.result-inner .res-label{font-size:16px;color:#457B9D;margin-bottom:8px}
+.result-inner .res-title{font-size:28px;font-weight:800;color:#1D3557;margin-bottom:4px}
+.result-inner .res-msg{font-size:14px;color:#6A994E;margin-bottom:12px}
+.result-stars{font-size:32px;letter-spacing:6px;margin-bottom:20px}
+.result-inner .res-score,.result-inner .res-label,.result-inner .res-title,.result-inner .res-msg,.result-stars{display:none}
+.result-stars .star{display:inline-block;transition:transform .3s}
+.result-stars .star.pop{animation:starPop .5s ease forwards}
+.result-poster{margin:0 auto 20px;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.12);max-width:330px;width:calc(100vw - 44px)}
+.result-poster img{width:100%;display:block}
+.result-btns{display:flex;flex-direction:column;gap:10px;width:calc(100vw - 44px);max-width:330px;margin:0 auto}
+.result-btns button{width:100%;padding:14px;border:none;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .1s}
+.result-btns button:active{transform:scale(.97)}
+.result-btns .btn-share{background:#457B9D;color:#fff;box-shadow:0 4px 0 #2C5F7C}
+.result-btns .btn-save{background:#E9C46A;color:#1D3557;box-shadow:0 4px 0 #C4A040}
+.result-btns .btn-retry{background:rgba(255,255,255,.8);color:#1D3557;border:2px solid rgba(0,0,0,.08)}
+.home-btn{position:fixed;left:14px;bottom:18px;z-index:70;display:none;align-items:center;gap:5px;padding:7px 10px 8px;border:2px solid rgba(255,255,255,.9);border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,247,229,.92));color:#1D3557;font-size:13px;font-weight:900;box-shadow:0 4px 0 rgba(29,53,87,.12),0 10px 22px rgba(0,0,0,.12);backdrop-filter:blur(8px);cursor:pointer}
+.home-btn::before{content:"";width:18px;height:18px;border-radius:50%;background:url('./assets/飞行足球_抠图透明.png') center/contain no-repeat;display:block;box-shadow:0 1px 0 rgba(255,255,255,.8)}
+.home-btn.show{display:flex}
+.home-btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(29,53,87,.12),0 6px 16px rgba(0,0,0,.1)}
+
+@keyframes starPop{0%{transform:scale(0) rotate(-30deg)}60%{transform:scale(1.4) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes boySway{0%,100%{transform:translateX(-50%) rotate(-2deg)}50%{transform:translateX(calc(-50% + 8px)) rotate(2deg)}}
+#poster-canvas{position:absolute;left:-9999px;top:-9999px}
+.hidden{display:none!important}
+@media (max-height:720px){
+  #screen-splash .splash-overlay{padding-top:86px}
+  #screen-splash .splash-logo{width:132px;height:132px;margin-bottom:62px}
+  .quiz-scroll{padding-top:44px;padding-bottom:140px}
+  .quiz-boy{width:min(36vw,136px);bottom:28px}
+}
+</style>
+</head>
+<body>
+
+<div id="loading-screen"><img src="./assets/开场封面.png" alt=""></div>
+
+<!-- Splash -->
+<div id="screen-splash" class="screen active">
+  <div class="splash-wrap"><img src="./assets/首屏背景-竖版.jpg" alt=""></div>
+  <div class="splash-overlay">
+    <div class="splash-sticker" style="top:8%;right:5%;width:70px;height:70px"><img src="./assets/飞行足球_抠图透明.png" alt=""></div>
+    <div class="splash-sticker" style="bottom:18%;left:6%;width:50px;height:50px;animation-delay:.5s"><img src="./assets/飞行足球_抠图透明.png" alt=""></div>
+    <div class="splash-title">世界杯球迷挑战</div>
+    <div class="splash-sub">20 道题，测测你是几级球迷</div>
+    <div class="splash-logo"><img src="./assets/卡通IP吉祥物_透明.png" alt=""></div>
+    <button class="splash-btn" id="btn-start">开始挑战</button>
+  </div>
+  <div class="splash-footer">@阿真 Irene</div>
+</div>
+
+<!-- Video Overlay -->
+<div id="video-overlay">
+  <video id="splash-video" playsinline preload="auto" poster="./assets/开场封面.png" src="./assets/开场踢球视频.mp4"></video>
+</div>
+
+<!-- Quiz -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-bg"><img src="./assets/答题页背景.jpg" alt=""></div>
+  <div class="quiz-boy"><img src="./assets/踢球角色_透明.png" alt=""></div>
+  <div class="quiz-scroll">
+    <div class="quiz-progress">
+      <div class="ball"><img src="./assets/飞行足球_抠图透明.png" alt=""></div>
+      <div class="bar-wrap"><div class="bar-fill" id="bar-fill"></div></div>
+      <div class="count" id="q-count">1/20</div>
+    </div>
+    <div class="quiz-card" id="quiz-card">
+      <div class="q-num" id="q-num"></div>
+      <div class="q-text" id="q-text"></div>
+    </div>
+    <div class="quiz-options" id="quiz-options"></div>
+  </div>
+</div>
+
+<!-- Feedback Toast -->
+<div class="feedback-toast" id="feedback-toast">
+  <span class="fb-icon" id="fb-icon"></span>
+  <span id="fb-label"></span>
+  <div class="fb-tip" id="fb-tip"></div>
+</div>
+
+<!-- Result -->
+<div id="screen-result" class="screen">
+  <div class="result-bg"><img src="./assets/结果页背景.jpg" alt=""></div>
+  <div class="result-inner">
+    <div class="res-score" id="res-score"></div>
+    <div class="res-label" id="res-label"></div>
+    <div class="res-title" id="res-title"></div>
+    <div class="res-msg" id="res-msg"></div>
+    <div class="result-stars" id="result-stars"></div>
+    <div class="result-poster" id="result-poster"></div>
+    <div class="result-btns">
+      <button class="btn-share" id="btn-share">📤 分享给朋友</button>
+      <button class="btn-save" id="btn-save">💾 保存图片</button>
+      <button class="btn-retry" id="btn-retry">🔄 再来一次</button>
+    </div>
+  </div>
+</div>
+
+<button class="home-btn" id="btn-home" type="button">回首页</button>
+<canvas id="poster-canvas" width="750" height="1334"></canvas>
+
+<script>
+const QUESTIONS = [
+  {id:1,category:"history",question:"第一届世界杯足球赛在哪一年举办？",options:["1928 年","1930 年","1934 年","1932 年"],answer:1,tip:"1930 年，第一届世界杯在乌拉圭举行，东道主夺冠。"},
+  {id:2,category:"history",question:"唯一一支参加了全部 22 届世界杯决赛圈的国家队是？",options:["德国","阿根廷","巴西","意大利"],answer:2,tip:"巴西是唯一从未缺席任何一届世界杯的球队。"},
+  {id:3,category:"history",question:"截至 2022 年，夺得世界杯冠军次数最多的国家是哪个？共几次？",options:["德国（4 次）","意大利（4 次）","阿根廷（3 次）","巴西（5 次）"],answer:3,tip:"巴西 5 次夺冠（1958、1962、1970、1994、2002），德国和意大利各 4 次。"},
+  {id:4,category:"history",question:"世界杯历史上总进球最多的球员是谁？共打进多少球？",options:["米罗斯拉夫·克洛泽（16 球）","罗纳尔多（15 球）","盖德·穆勒（14 球）","梅西（13 球）"],answer:0,tip:"德国前锋克洛泽 4 届世界杯共打入 16 球，位居历史射手榜第一。"},
+  {id:5,category:"history",question:"单届世界杯个人进球最多的纪录保持者是谁？进了多少球？",options:["盖德·穆勒（10 球）","朱斯特·方丹（13 球）","罗纳尔多（8 球）","柯奇士（11 球）"],answer:1,tip:"法国前锋方丹在 1958 年瑞典世界杯打入 13 球，纪录至今无人打破。"},
+  {id:6,category:"legends",question:"至今唯一赢得过三届世界杯冠军的球员是谁？",options:["马拉多纳","齐达内","贝利","贝肯鲍尔"],answer:2,tip:"贝利在 1958、1962、1970 年三次捧起世界杯，历史唯一。"},
+  {id:7,category:"legends",question:"贝利在 1958 年世界杯首次进球时多大年龄？",options:["15 岁","19 岁","20 岁","17 岁"],answer:3,tip:"1958 年 1/4 决赛对阵威尔士，贝利进球时年仅 17 岁 239 天。"},
+  {id:8,category:"legends",question:"马拉多纳著名的「上帝之手」进球发生在哪场比赛？",options:["1986 年 1/4 决赛 阿根廷 vs 英格兰","1990 年 半决赛 阿根廷 vs 意大利","1986 年 决赛 阿根廷 vs 德国","1982 年 小组赛 阿根廷 vs 巴西"],answer:0,tip:"1986 年世界杯 1/4 决赛，马拉多纳用手球攻破英格兰大门。"},
+  {id:9,category:"legends",question:"齐达内的「头撞人」事件发生在哪场比赛？",options:["1998 年 半决赛（对阵克罗地亚）","2006 年 决赛（对阵意大利）","2002 年 小组赛（对阵丹麦）","2006 年 半决赛（对阵葡萄牙）"],answer:1,tip:"2006 年决赛加时赛，齐达内头顶马特拉齐被红牌罚下，意大利点球夺冠。"},
+  {id:10,category:"legends",question:"巴西球星罗纳尔多（大罗）在 2002 年世界杯打入多少球获得金靴奖？",options:["6 球","10 球","8 球","5 球"],answer:2,tip:"罗纳尔多 8 球荣膺金靴，决赛对阵德国独中两元，巴西第 5 次夺冠。"},
+  {id:11,category:"2026",question:"2026 年世界杯开幕战的比分是多少？",options:["墨西哥 1-0 南非","墨西哥 3-1 南非","墨西哥 1-1 南非","墨西哥 2-0 南非"],answer:3,tip:"2026 年 6 月 11 日，墨西哥在阿兹特克球场 2-0 战胜南非。"},
+  {id:12,category:"2026",question:"2026 年世界杯参赛队伍从 32 支扩大到多少支？",options:["48 支","40 支","36 支","64 支"],answer:0,tip:"2026 年首次扩军至 48 队，分 12 组，每组前二加 8 个最佳第三晋级 32 强。"},
+  {id:13,category:"2026",question:"2026 年世界杯由哪几个国家联合主办？",options:["加拿大、墨西哥、巴西","美国、加拿大、墨西哥","美国、墨西哥、阿根廷","加拿大、美国、英国"],answer:1,tip:"美国、加拿大、墨西哥三国联合主办，历史上首次。"},
+  {id:14,category:"2026",question:"哪座球场成为历史上第一个举办过三届世界杯比赛的体育场？",options:["马拉卡纳球场（巴西）","温布利球场（英格兰）","阿兹特克球场（墨西哥）","玫瑰碗球场（美国）"],answer:2,tip:"墨西哥城阿兹特克球场（1970、1986、2026），首个三届世界杯球场。"},
+  {id:15,category:"2026",question:"梅西和 C 罗在 2026 年世界杯共同创造了什么纪录？",options:["第 5 次参赛（并列最多）","各自打入世界杯第 20 球","首次以教练身份参赛","第 6 次参赛（历史第一）"],answer:3,tip:"两人均迎来第 6 届世界杯，成为史上首批六次参赛的球员。"},
+  {id:16,category:"fun_facts",question:"梅西的妻子叫什么名字？两人如何相识？",options:["安东内拉·罗库佐（从小认识）","索菲亚·巴尔比（大学同学）","玛丽亚·洛佩兹（经队友介绍）","卡米拉·罗德里格斯（球迷见面会）"],answer:0,tip:"梅西与安东内拉 5 岁起就认识，2017 年结婚，育有三子。"},
+  {id:17,category:"fun_facts",question:"2026 年世界杯官方歌曲《Dai Dai》由哪两位歌手共同演唱？",options:["Dua Lipa 与 Bad Bunny","夏奇拉与 Burna Boy","The Weeknd 与 Rosalía","BTS 与 Blackpink"],answer:1,tip:"哥伦比亚歌手夏奇拉与尼日利亚歌手 Burna Boy 演唱，「Dai Dai」在意大利语中意为「加油」。"},
+  {id:18,category:"fun_facts",question:"挪威球星哈兰德的父亲也曾踢过职业足球，以下哪项描述正确？",options:["他父亲司职门将，效力过皇马","他父亲是挪威国家队主帅","他父亲曾在英超踢球，代表挪威出场 34 次","他父亲从未踢过职业足球"],answer:2,tip:"阿尔夫-因格·哈兰德效力过诺丁汉森林、利兹联和曼城，挪威国家队 34 场。"},
+  {id:19,category:"fun_facts",question:"2026 年世界杯是挪威时隔多少年重返世界杯决赛圈？",options:["20 年","32 年","16 年","28 年"],answer:3,tip:"挪威上一次参加世界杯是 1998 年，在哈兰德带领下时隔 28 年重返。"},
+  {id:20,category:"fun_facts",question:"哈兰德在 2026 世界杯欧洲区预选赛中打入了多少粒进球？",options:["16 球","12 球","20 球","8 球"],answer:0,tip:"哈兰德 8 场预选赛场场进球共 16 球，追平欧洲区单届世预赛纪录。"},
+];
+
+const TITLES = [
+  {min:0,max:4,title:"👶 足球萌新",stars:1,msg:"建议从今晚的集锦开始补课…"},
+  {min:5,max:8,title:"👀 路人球迷",stars:2,msg:"四年看一次球，说的就是你！"},
+  {min:9,max:12,title:"⚽ 入门球迷",stars:3,msg:"有点东西，但不多。继续努力！"},
+  {min:13,max:16,title:"🔥 资深球迷",stars:4,msg:"酒吧看球时你最有发言权！"},
+  {min:17,max:20,title:"🏆 世界杯活字典",stars:5,msg:"你该去解说席，别在这答题了！"},
+];
+
+const LETTERS = ['A','B','C','D'];
+const cleanOptionLabel = text => text.replace(/（[^）]*）/g, '').replace(/\s*\([^)]*\)/g, '').trim();
+const SHARE_URL = 'https://cola-dispatch.marswave-543.workers.dev/app-a50303/';
+let posterBlob = null;
+
+// ── Audio (Web Audio API synthetic SFX) ──
+let audioCtx = null;
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function playTone(freq, duration, type, vol) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type || 'sine';
+  o.frequency.value = freq;
+  g.gain.setValueAtTime(vol || 0.15, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + duration);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t + duration);
+}
+function sfxClick() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = 'square';
+  o.frequency.setValueAtTime(1000, t);
+  o.frequency.exponentialRampToValueAtTime(600, t + 0.08);
+  g.gain.setValueAtTime(0.08, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t + 0.08);
+}
+function sfxCorrect() {
+  playTone(800, 0.12, 'sine', 0.12);
+  setTimeout(() => playTone(1200, 0.18, 'sine', 0.15), 80);
+}
+function sfxWrong() {
+  playTone(400, 0.15, 'triangle', 0.1);
+  setTimeout(() => playTone(300, 0.2, 'triangle', 0.08), 100);
+}
+function sfxTransition() {
+  if (!audioCtx) return;
+  const bufSize = audioCtx.sampleRate * 0.12;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 2);
+  }
+  const src = audioCtx.createBufferSource();
+  const g = audioCtx.createGain();
+  src.buffer = buf;
+  g.gain.setValueAtTime(0.06, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+  src.connect(g); g.connect(audioCtx.destination);
+  src.start();
+}
+function sfxResult() {
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((f, i) => setTimeout(() => playTone(f, 0.25, 'sine', 0.14), i * 120));
+  setTimeout(() => {
+    [1200, 1400, 1600, 1800].forEach((f, i) => setTimeout(() => playTone(f, 0.3, 'sine', 0.1), i * 60));
+  }, 500);
+}
+let state = { screen:'splash', idx:0, score:0, answers:[], answering:false };
+
+const $ = id => document.getElementById(id);
+const screenSplash = $('screen-splash');
+const screenQuiz = $('screen-quiz');
+const screenResult = $('screen-result');
+const videoOverlay = $('video-overlay');
+const splashVideo = $('splash-video');
+const feedbackToast = $('feedback-toast');
+const homeBtn = $('btn-home');
+const loadingScreen = $('loading-screen');
+
+function switchScreen(name) {
+  [screenSplash,screenQuiz,screenResult].forEach(s => s.classList.remove('active'));
+  if (name === 'splash') { screenSplash.classList.add('active'); }
+  else if (name === 'quiz') { screenQuiz.classList.add('active'); }
+  else { screenResult.classList.add('active'); }
+  homeBtn.classList.toggle('show', name === 'quiz');
+  state.screen = name;
+}
+
+function shuffleArray(items) {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function canvasToBlob(canvas) {
+  return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
+async function copyShareUrl() {
+  try {
+    await navigator.clipboard.writeText(SHARE_URL);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function flashButton(btn, text) {
+  const old = btn.textContent;
+  btn.textContent = text;
+  setTimeout(() => { btn.textContent = old; }, 1400);
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
+function goHome() {
+  state.answering = false;
+  feedbackToast.classList.remove('show');
+  videoOverlay.classList.remove('active');
+  splashVideo.pause();
+  switchScreen('splash');
+}
+
+$('btn-start').addEventListener('click', () => {
+  initAudio();
+  videoOverlay.classList.add('active');
+  splashVideo.currentTime = 0;
+  splashVideo.play().catch(() => {
+    videoOverlay.classList.remove('active');
+    startQuiz();
+  });
+});
+
+splashVideo.addEventListener('ended', () => {
+  setTimeout(() => {
+    videoOverlay.classList.remove('active');
+    startQuiz();
+  }, 80);
+});
+
+function startQuiz() {
+  state.idx = 0; state.score = 0; state.answers = [];
+  switchScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[state.idx];
+  const card = $('quiz-card');
+  $('q-num').textContent = `第 ${state.idx + 1} 题`;
+  $('q-text').textContent = q.question;
+  $('q-count').textContent = `${state.idx + 1}/20`;
+  $('bar-fill').style.width = `${(state.idx / 20) * 100}%`;
+  const opts = $('quiz-options');
+  opts.innerHTML = '';
+  const shuffledOptions = shuffleArray(q.options.map((option, originalIndex) => ({ option, originalIndex })));
+  shuffledOptions.forEach((item, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'opt';
+    btn.dataset.originalIndex = item.originalIndex;
+    btn.innerHTML = `<span class="opt-letter">${LETTERS[i]}</span><span>${cleanOptionLabel(item.option)}</span>`;
+    btn.addEventListener('click', () => handleAnswer(item.originalIndex));
+    opts.appendChild(btn);
+  });
+  card.classList.remove('slide-in','slide-out');
+  void card.offsetWidth;
+  card.classList.add('slide-in');
+  state.answering = false;
+}
+
+function handleAnswer(selected) {
+  if (state.answering) return;
+  state.answering = true;
+  sfxClick();
+  const q = QUESTIONS[state.idx];
+  const correct = selected === q.answer;
+  if (correct) state.score++;
+  state.answers.push({qId:q.id, selected, correct});
+  const opts = $('quiz-options').children;
+  for (let i = 0; i < opts.length; i++) {
+    const originalIndex = Number(opts[i].dataset.originalIndex);
+    opts[i].classList.add('disabled');
+    if (originalIndex === q.answer) opts[i].classList.add(correct ? 'correct' : 'reveal-correct');
+    if (originalIndex === selected && !correct) opts[i].classList.add('wrong');
+  }
+  showFeedback(correct, q.tip, () => {
+    state.idx++;
+    if (state.idx >= 20) { showResult(); }
+    else {
+      sfxTransition();
+      $('quiz-card').classList.remove('slide-in');
+      $('quiz-card').classList.add('slide-out');
+      setTimeout(() => renderQuestion(), 350);
+    }
+  });
+}
+
+function showFeedback(correct, tip, done) {
+  feedbackToast.className = 'feedback-toast ' + (correct ? 'correct' : 'wrong');
+  $('fb-icon').innerHTML = correct
+    ? '<img src="./assets/答对反馈_贴纸透明.png" alt="">'
+    : '<img src="./assets/答错反馈_贴纸透明.png" alt="">';
+  $('fb-label').textContent = correct ? '答对了！' : '答错了';
+  $('fb-tip').textContent = tip;
+  feedbackToast.classList.add('show');
+  if (correct) sfxCorrect(); else sfxWrong();
+  setTimeout(() => {
+    feedbackToast.classList.remove('show');
+    setTimeout(done, 300);
+  }, 1800);
+}
+
+function showResult() {
+  switchScreen('result');
+  const score = state.score;
+  const title = TITLES.find(t => score >= t.min && score <= t.max);
+  $('res-score').textContent = score + '/20';
+  $('res-label').textContent = score <= 4 ? '加油！' : score <= 8 ? '还不错！' : score <= 12 ? '可以啊！' : score <= 16 ? '厉害了！' : '太强了！';
+  $('res-title').textContent = title.title;
+  $('res-msg').textContent = title.msg;
+  const starDiv = $('result-stars');
+  starDiv.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const s = document.createElement('span');
+    s.className = 'star';
+    s.textContent = i < title.stars ? '★' : '☆';
+    s.style.color = i < title.stars ? '#E9C46A' : '#ccc';
+    s.style.animationDelay = `${i * 0.15}s`;
+    if (i < title.stars) s.classList.add('pop');
+    starDiv.appendChild(s);
+  }
+  generatePoster(score, title);
+  sfxResult();
+}
+
+async function generatePoster(score, title) {
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch(e) {}
+  }
+  const canvas = $('poster-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = 750, H = 1334;
+  const resultName = title.title.replace(/^[^\u4e00-\u9fffA-Za-z0-9]+/, '').trim();
+  ctx.fillStyle = '#F5F0E8';
+  ctx.fillRect(0, 0, W, H);
+  try {
+    const bgImg = new Image();
+    await new Promise((resolve) => { bgImg.onload = resolve; bgImg.onerror = resolve; bgImg.src = './assets/分享海报背景.jpg'; });
+    if (bgImg.width > 0) ctx.drawImage(bgImg, 0, 0, W, H);
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.fillRect(0, 0, W, H);
+  } catch(e) {}
+  try {
+    const mascot = new Image();
+    await new Promise((resolve) => { mascot.onload = resolve; mascot.onerror = resolve; mascot.src = './assets/卡通IP吉祥物_透明.png'; });
+    if (mascot.width > 0) ctx.drawImage(mascot, W/2 - 74, 170, 148, 148);
+  } catch(e) {}
+  ctx.fillStyle = '#1D3557';
+  ctx.font = '900 58px PingFang SC, Hiragino Sans GB, Heiti SC, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('世界杯球迷挑战', W/2, 370);
+  ctx.fillStyle = '#E63946';
+  ctx.font = '900 132px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText(score + '/20', W/2, 530);
+  ctx.fillStyle = '#457B9D';
+  ctx.font = '800 34px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText(`答对 ${score} / 20 道题`, W/2, 590);
+  ctx.fillStyle = '#1D3557';
+  ctx.font = '900 52px PingFang SC, Hiragino Sans GB, Heiti SC, sans-serif';
+  ctx.fillText(resultName, W/2, 695);
+  ctx.font = '58px sans-serif';
+  ctx.fillStyle = '#E9C46A';
+  ctx.fillText('★'.repeat(title.stars) + '☆'.repeat(5 - title.stars), W/2, 772);
+  ctx.fillStyle = '#6A994E';
+  ctx.font = '28px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText(title.msg, W/2, 840);
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(142, 905); ctx.lineTo(W - 142, 905); ctx.stroke();
+  ctx.fillStyle = '#457B9D';
+  ctx.font = '800 30px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText('20 道题测测你是几级球迷', W/2, 970);
+  ctx.fillStyle = '#8A8A8A';
+  ctx.font = '24px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#8A8A8A';
+  ctx.font = '24px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText('公众号@阿真Irene', W/2, H - 44);
+  posterBlob = await canvasToBlob(canvas);
+  const dataUrl = canvas.toDataURL('image/png');
+  $('result-poster').innerHTML = `<img src="${dataUrl}" alt="我的成绩">`;
+  $('result-poster').dataset.dataUrl = dataUrl;
+  return dataUrl;
+}
+
+$('btn-share').addEventListener('click', async () => {
+  const btn = $('btn-share');
+  try {
+    if (navigator.share) {
+      await navigator.share({title:'世界杯球迷挑战',text:'20 道题，测测你是几级球迷！',url:SHARE_URL});
+    } else {
+      const copied = await copyShareUrl();
+      flashButton(btn, copied ? '链接已复制' : '复制失败');
+    }
+  } catch(e) {
+    const copied = await copyShareUrl();
+    flashButton(btn, copied ? '链接已复制' : '分享取消');
+  }
+});
+
+$('btn-save').addEventListener('click', async () => {
+  const dataUrl = $('result-poster').dataset.dataUrl;
+  if (!dataUrl) return;
+  const blob = posterBlob || await (await fetch(dataUrl)).blob();
+  downloadBlob(blob, '世界杯球迷挑战.png');
+});
+
+$('btn-retry').addEventListener('click', () => { switchScreen('splash'); });
+homeBtn.addEventListener('click', goHome);
+window.addEventListener('load', () => {
+  setTimeout(() => loadingScreen.classList.add('hide'), 300);
+});
+splashVideo.load();
+</script>
+</body>
+</html>
