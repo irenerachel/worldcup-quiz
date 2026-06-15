@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta property="og:title" content="世界杯球迷挑战">
 <meta property="og:description" content="20 道题，测测你是几级球迷">
-<meta property="og:url" content="https://cola-dispatch.marswave-543.workers.dev/app-a50303/">
-<meta property="og:image" content="https://cola-dispatch.marswave-543.workers.dev/app-a50303/assets/社交分享封面.jpg">
+<meta property="og:url" content="https://irenerachel.github.io/worldcup-quiz/">
+<meta property="og:image" content="https://irenerachel.github.io/worldcup-quiz/assets/社交分享封面.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="世界杯球迷挑战">
 <meta name="twitter:description" content="20 道题，测测你是几级球迷">
-<meta name="twitter:image" content="https://cola-dispatch.marswave-543.workers.dev/app-a50303/assets/社交分享封面.jpg">
-<link rel="canonical" href="https://cola-dispatch.marswave-543.workers.dev/app-a50303/">
+<meta name="twitter:image" content="https://irenerachel.github.io/worldcup-quiz/assets/社交分享封面.jpg">
+<link rel="canonical" href="https://irenerachel.github.io/worldcup-quiz/">
 <link rel="icon" href="./assets/飞行足球_抠图透明.png">
 <link rel="preload" as="image" href="./assets/开场封面.png">
 <title>世界杯球迷挑战</title>
@@ -74,7 +74,8 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 .quiz-card .q-num{font-size:12px;font-weight:700;color:#E63946;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
 .quiz-card .q-text{font-size:19px;font-weight:700;line-height:1.5;color:#1D3557}
 
-.quiz-options{display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.quiz-options{display:flex;flex-direction:column;gap:10px;flex-shrink:0;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .28s ease,transform .28s ease}
+.quiz-options.show{opacity:1;transform:translateY(0);pointer-events:auto}
 .quiz-options .opt{display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,255,255,.88);border:2px solid rgba(0,0,0,.06);border-radius:14px;font-size:16px;font-weight:600;color:#1D3557;cursor:pointer;transition:background .2s,border-color .2s,transform .1s}
 .quiz-options .opt:active{transform:scale(.98)}
 .quiz-options .opt .opt-letter{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;color:#fff}
@@ -161,7 +162,7 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 <!-- Quiz -->
 <div id="screen-quiz" class="screen">
   <div class="quiz-bg"><img src="./assets/答题页背景.jpg" alt=""></div>
-  <div class="quiz-boy"><img src="./assets/踢球角色_透明.png" alt=""></div>
+  <div class="quiz-boy"><img src="./assets/踢球角色.png" alt=""></div>
   <div class="quiz-scroll">
     <div class="quiz-progress">
       <div class="ball"><img src="./assets/飞行足球_抠图透明.png" alt=""></div>
@@ -238,7 +239,7 @@ const TITLES = [
 
 const LETTERS = ['A','B','C','D'];
 const cleanOptionLabel = text => text.replace(/（[^）]*）/g, '').replace(/\s*\([^)]*\)/g, '').trim();
-const SHARE_URL = 'https://cola-dispatch.marswave-543.workers.dev/app-a50303/';
+const SHARE_URL = 'https://irenerachel.github.io/worldcup-quiz/';
 let posterBlob = null;
 
 // ── Audio (Web Audio API synthetic SFX) ──
