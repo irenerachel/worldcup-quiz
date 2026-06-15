@@ -124,6 +124,10 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 .home-btn::before{content:"";width:18px;height:18px;border-radius:50%;background:url('./assets/飞行足球_抠图透明.png') center/contain no-repeat;display:block;box-shadow:0 1px 0 rgba(255,255,255,.8)}
 .home-btn.show{display:flex}
 .home-btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(29,53,87,.12),0 6px 16px rgba(0,0,0,.1)}
+.bgm-toggle{position:fixed;top:14px;right:14px;z-index:80;display:none;align-items:center;justify-content:center;width:42px;height:42px;border:2px solid rgba(255,255,255,.9);border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,247,229,.92));box-shadow:0 4px 0 rgba(29,53,87,.12),0 8px 18px rgba(0,0,0,.12);font-size:19px;line-height:1;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.bgm-toggle.show{display:flex}
+.bgm-toggle.off{opacity:.65}
+.bgm-toggle:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(29,53,87,.12),0 5px 12px rgba(0,0,0,.1)}
 .toast-note{position:fixed;left:50%;bottom:24px;z-index:120;transform:translate(-50%,18px);opacity:0;pointer-events:none;padding:10px 16px;border-radius:999px;background:rgba(29,53,87,.92);color:#fff;font-size:14px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);transition:opacity .22s ease,transform .22s ease}
 .toast-note.show{opacity:1;transform:translate(-50%,0)}
 
@@ -206,6 +210,8 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 </div>
 
 <button class="home-btn" id="btn-home" type="button">回首页</button>
+<audio id="bgm" src="./assets/海风进球.mp3" loop preload="auto"></audio>
+<button class="bgm-toggle" id="btn-bgm" type="button" aria-label="背景音乐开关">🔊</button>
 <div class="toast-note" id="toast-note"></div>
 <canvas id="poster-canvas" width="750" height="1334"></canvas>
 
@@ -332,6 +338,24 @@ const feedbackToast = $('feedback-toast');
 const homeBtn = $('btn-home');
 const loadingScreen = $('loading-screen');
 const toastNote = $('toast-note');
+const bgm = $('bgm');
+const bgmBtn = $('btn-bgm');
+let bgmOn = true;        // 默认开启
+let bgmPending = false;  // 自动播放被浏览器拦截时，等下一次手势补播
+
+function updateBgmIcon() {
+  bgmBtn.textContent = bgmOn ? '🔊' : '🔇';
+  bgmBtn.classList.toggle('off', !bgmOn);
+}
+function playBgm() {
+  if (!bgmOn) return;
+  bgm.volume = 0.35;
+  const p = bgm.play();
+  if (p && typeof p.catch === 'function') {
+    p.catch(() => { bgmPending = true; });
+  }
+}
+function pauseBgm() { bgm.pause(); }
 
 function switchScreen(name) {
   [screenSplash,screenQuiz,screenResult].forEach(s => s.classList.remove('active'));
@@ -339,6 +363,8 @@ function switchScreen(name) {
   else if (name === 'quiz') { screenQuiz.classList.add('active'); }
   else { screenResult.classList.add('active'); }
   homeBtn.classList.toggle('show', name === 'quiz');
+  bgmBtn.classList.toggle('show', name === 'quiz' || name === 'result');
+  if (name === 'splash') pauseBgm();
   state.screen = name;
 }
 
@@ -436,6 +462,7 @@ function startQuiz() {
   clearQuizTimers();
   state.idx = 0; state.score = 0; state.answers = [];
   switchScreen('quiz');
+  playBgm();           // 入场动画结束后开始播放 BGM
   renderQuestion();
 }
 
@@ -546,43 +573,94 @@ async function generatePoster(score, title) {
     const bgImg = new Image();
     await new Promise((resolve) => { bgImg.onload = resolve; bgImg.onerror = resolve; bgImg.src = './assets/分享海报背景.jpg'; });
     if (bgImg.width > 0) ctx.drawImage(bgImg, 0, 0, W, H);
-    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.fillStyle = 'rgba(255,255,255,0.16)';
     ctx.fillRect(0, 0, W, H);
   } catch(e) {}
+  // 圆角矩形辅助
+  const rr = (x, y, w, h, r) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  };
+
+  // ── 中央证书卡片 ──
+  const panelX = 76, panelY = 250, panelW = W - 152, panelH = 832;
+  ctx.save();
+  ctx.shadowColor = 'rgba(29,53,87,0.12)';
+  ctx.shadowBlur = 30;
+  ctx.shadowOffsetY = 10;
+  ctx.fillStyle = 'rgba(255,255,255,0.86)';
+  rr(panelX, panelY, panelW, panelH, 34);
+  ctx.fill();
+  ctx.restore();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(29,53,87,0.10)';
+  rr(panelX, panelY, panelW, panelH, 34);
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+
+  // 吉祥物徽章（压在卡片顶边）
   try {
     const mascot = new Image();
     await new Promise((resolve) => { mascot.onload = resolve; mascot.onerror = resolve; mascot.src = './assets/卡通IP吉祥物_透明.png'; });
-    if (mascot.width > 0) ctx.drawImage(mascot, W/2 - 62, 140, 124, 124);
+    if (mascot.width > 0) ctx.drawImage(mascot, W/2 - 76, 150, 152, 152);
   } catch(e) {}
-  ctx.fillStyle = '#1D3557';
-  ctx.font = '900 54px PingFang SC, Hiragino Sans GB, Heiti SC, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('世界杯球迷挑战', W/2, 320);
-  ctx.fillStyle = '#E63946';
-  ctx.font = '900 128px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText(score + '/20', W/2, 470);
-  ctx.fillStyle = '#457B9D';
-  ctx.font = '800 32px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText(`答对 ${score} / 20 道题`, W/2, 532);
+
+  // 标题
   ctx.fillStyle = '#1D3557';
   ctx.font = '900 50px PingFang SC, Hiragino Sans GB, Heiti SC, sans-serif';
-  ctx.fillText(resultName, W/2, 642);
-  ctx.font = '56px sans-serif';
+  ctx.fillText('世界杯球迷挑战', W/2, 406);
+
+  // 大比分
+  ctx.fillStyle = '#E63946';
+  ctx.font = '900 140px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText(score + '/20', W/2, 588);
+
+  // 答对统计
+  ctx.fillStyle = '#457B9D';
+  ctx.font = '700 30px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText(`答对 ${score} / 20 道题`, W/2, 648);
+
+  // 称号高亮胶囊
+  ctx.font = '900 52px PingFang SC, Hiragino Sans GB, Heiti SC, sans-serif';
+  const nameW = ctx.measureText(resultName).width;
+  const pillW = nameW + 72, pillH = 78, pillY = 730;
+  ctx.fillStyle = 'rgba(233,196,106,0.30)';
+  rr(W/2 - pillW/2, pillY, pillW, pillH, pillH/2);
+  ctx.fill();
+  ctx.fillStyle = '#1D3557';
+  ctx.fillText(resultName, W/2, pillY + 55);
+
+  // 星级
+  ctx.font = '52px sans-serif';
   ctx.fillStyle = '#E9C46A';
-  ctx.fillText('★'.repeat(title.stars) + '☆'.repeat(5 - title.stars), W/2, 720);
+  ctx.fillText('★'.repeat(title.stars) + '☆'.repeat(5 - title.stars), W/2, 888);
+
+  // 评语
   ctx.fillStyle = '#6A994E';
-  ctx.font = '28px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText(title.msg, W/2, 790);
-  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+  ctx.font = '600 28px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText(title.msg, W/2, 952);
+
+  // 分隔线
+  ctx.strokeStyle = 'rgba(29,53,87,0.10)';
   ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(148, 865); ctx.lineTo(W - 148, 865); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(panelX + 56, 1006); ctx.lineTo(W - panelX - 56, 1006); ctx.stroke();
+
+  // 底部引导语
   ctx.fillStyle = '#457B9D';
   ctx.font = '800 30px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText('20 道题测测你是几级球迷', W/2, 930);
+  ctx.fillText('20 道题测测你是几级球迷', W/2, 1062);
+
+  // 页脚
   ctx.fillStyle = '#8A8A8A';
   ctx.font = '24px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('公众号@阿真Irene', W/2, H - 86);
+  ctx.fillText('公众号 @阿真Irene', W/2, H - 92);
   posterBlob = await canvasToBlob(canvas);
   const dataUrl = canvas.toDataURL('image/png');
   $('result-poster').innerHTML = `<img src="${dataUrl}" alt="我的成绩">`;
@@ -638,6 +716,17 @@ $('btn-save').addEventListener('click', async () => {
 
 $('btn-retry').addEventListener('click', () => { switchScreen('splash'); });
 homeBtn.addEventListener('click', goHome);
+
+bgmBtn.addEventListener('click', () => {
+  bgmOn = !bgmOn;
+  updateBgmIcon();
+  if (bgmOn) playBgm(); else pauseBgm();
+});
+// 自动播放被浏览器拦截时，用户下一次触屏/点击补播
+document.addEventListener('pointerdown', () => {
+  if (bgmPending && bgmOn) { bgmPending = false; playBgm(); }
+}, { passive: true });
+updateBgmIcon();
 window.addEventListener('load', () => {
   setTimeout(() => loadingScreen.classList.add('hide'), 300);
 });
