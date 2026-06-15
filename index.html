@@ -67,14 +67,15 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 .quiz-progress .bar-fill{height:100%;background:linear-gradient(90deg,#E63946,#E9C46A,#6A994E);border-radius:4px;transition:width .4s ease;width:0%}
 .quiz-progress .count{font-size:13px;font-weight:700;color:#457B9D;white-space:nowrap;min-width:42px;text-align:right}
 
-.quiz-card{background:rgba(255,255,255,.92);border-radius:20px;padding:24px 20px;box-shadow:0 4px 24px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.04);margin-bottom:12px;transition:transform .3s ease,opacity .3s ease;flex-shrink:0}
-.quiz-card.slide-out{transform:translateX(-120%);opacity:0}
-.quiz-card.slide-in{animation:slideIn .4s ease forwards}
+.quiz-card{background:rgba(255,255,255,.92);border-radius:20px;padding:24px 20px;box-shadow:0 4px 24px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.04);margin-bottom:12px;flex-shrink:0;will-change:transform,opacity}
+.quiz-card.slide-out{animation:slideOut .24s ease forwards}
+.quiz-card.slide-in{animation:slideIn .38s ease forwards}
 @keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(-120%);opacity:0}}
 .quiz-card .q-num{font-size:12px;font-weight:700;color:#E63946;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
 .quiz-card .q-text{font-size:19px;font-weight:700;line-height:1.5;color:#1D3557}
 
-.quiz-options{display:flex;flex-direction:column;gap:10px;flex-shrink:0;opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .28s ease,transform .28s ease}
+.quiz-options{display:flex;flex-direction:column;gap:10px;flex-shrink:0;opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .16s ease,transform .16s ease}
 .quiz-options.show{opacity:1;transform:translateY(0);pointer-events:auto}
 .quiz-options .opt{display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,255,255,.88);border:2px solid rgba(0,0,0,.06);border-radius:14px;font-size:16px;font-weight:600;color:#1D3557;cursor:pointer;transition:background .2s,border-color .2s,transform .1s}
 .quiz-options .opt:active{transform:scale(.98)}
@@ -309,6 +310,11 @@ function sfxResult() {
 }
 let state = { screen:'splash', idx:0, score:0, answers:[], answering:false };
 
+// 答题流程里所有定时器统一登记，回首页时一次性清掉，避免遗留回调把人弹回题目
+let quizTimers = [];
+function qTimeout(fn, ms) { const id = setTimeout(fn, ms); quizTimers.push(id); return id; }
+function clearQuizTimers() { quizTimers.forEach(clearTimeout); quizTimers = []; }
+
 const $ = id => document.getElementById(id);
 const screenSplash = $('screen-splash');
 const screenQuiz = $('screen-quiz');
@@ -379,10 +385,15 @@ function downloadBlob(blob, filename) {
 }
 
 function goHome() {
+  clearQuizTimers();
   state.answering = false;
+  state.idx = 0; state.score = 0; state.answers = [];
   feedbackToast.classList.remove('show');
+  $('quiz-options').classList.remove('show');
+  $('quiz-card').classList.remove('slide-in','slide-out');
   videoOverlay.classList.remove('active');
   splashVideo.pause();
+  splashVideo.currentTime = 0;
   switchScreen('splash');
 }
 
@@ -404,6 +415,7 @@ splashVideo.addEventListener('ended', () => {
 });
 
 function startQuiz() {
+  clearQuizTimers();
   state.idx = 0; state.score = 0; state.answers = [];
   switchScreen('quiz');
   renderQuestion();
@@ -431,7 +443,7 @@ function renderQuestion() {
   card.classList.remove('slide-in','slide-out');
   void card.offsetWidth;
   card.classList.add('slide-in');
-  setTimeout(() => opts.classList.add('show'), 330);
+  qTimeout(() => opts.classList.add('show'), 330);
   state.answering = false;
 }
 
@@ -455,9 +467,10 @@ function handleAnswer(selected) {
     if (state.idx >= 20) { showResult(); }
     else {
       sfxTransition();
+      $('quiz-options').classList.remove('show');
       $('quiz-card').classList.remove('slide-in');
       $('quiz-card').classList.add('slide-out');
-      setTimeout(() => renderQuestion(), 350);
+      qTimeout(() => renderQuestion(), 300);
     }
   });
 }
@@ -471,9 +484,9 @@ function showFeedback(correct, tip, done) {
   $('fb-tip').textContent = tip;
   feedbackToast.classList.add('show');
   if (correct) sfxCorrect(); else sfxWrong();
-  setTimeout(() => {
+  qTimeout(() => {
     feedbackToast.classList.remove('show');
-    setTimeout(done, 300);
+    qTimeout(done, 300);
   }, 1800);
 }
 
