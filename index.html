@@ -99,10 +99,9 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 .feedback-toast .fb-tip{font-size:14px;opacity:.9;margin-top:8px;max-width:260px}
 
 /* ── result ── */
-#screen-result{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:10;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#screen-result{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:10;overflow-y:auto;-webkit-overflow-scrolling:touch;background:#F5F0E8 url('./assets/结果页背景.jpg') top center/cover no-repeat;background-attachment:local}
 #screen-result.active{opacity:1;pointer-events:auto}
-#screen-result .result-bg{position:absolute;inset:0;z-index:0}
-#screen-result .result-bg img{width:100%;height:100%;object-fit:cover}
+#screen-result .result-bg{display:none}
 .result-inner{position:relative;z-index:2;text-align:center;padding:20px 20px 36px;width:100%}
 .result-inner .res-score{font-size:72px;font-weight:900;color:#E63946;line-height:1;margin-bottom:4px}
 .result-inner .res-label{font-size:16px;color:#457B9D;margin-bottom:8px}
@@ -118,13 +117,13 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 .result-btns button{width:100%;padding:14px;border:none;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .1s}
 .result-btns button:active{transform:scale(.97)}
 .result-btns .btn-share{background:#457B9D;color:#fff;box-shadow:0 4px 0 #2C5F7C}
-.result-btns .btn-save{background:#E9C46A;color:#1D3557;box-shadow:0 4px 0 #C4A040}
+.result-btns .btn-save{background:#6A994E;color:#fff;box-shadow:0 4px 0 #4F7639}
 .result-btns .btn-retry{background:rgba(255,255,255,.8);color:#1D3557;border:2px solid rgba(0,0,0,.08)}
 .home-btn{position:fixed;left:14px;bottom:18px;z-index:70;display:none;align-items:center;gap:5px;padding:7px 10px 8px;border:2px solid rgba(255,255,255,.9);border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,247,229,.92));color:#1D3557;font-size:13px;font-weight:900;box-shadow:0 4px 0 rgba(29,53,87,.12),0 10px 22px rgba(0,0,0,.12);backdrop-filter:blur(8px);cursor:pointer}
 .home-btn::before{content:"";width:18px;height:18px;border-radius:50%;background:url('./assets/飞行足球_抠图透明.png') center/contain no-repeat;display:block;box-shadow:0 1px 0 rgba(255,255,255,.8)}
 .home-btn.show{display:flex}
 .home-btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(29,53,87,.12),0 6px 16px rgba(0,0,0,.1)}
-.bgm-toggle{position:fixed;top:14px;right:14px;z-index:80;display:none;align-items:center;justify-content:center;width:42px;height:42px;border:2px solid rgba(255,255,255,.9);border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,247,229,.92));box-shadow:0 4px 0 rgba(29,53,87,.12),0 8px 18px rgba(0,0,0,.12);font-size:19px;line-height:1;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.bgm-toggle{position:fixed;right:14px;bottom:18px;z-index:80;display:none;align-items:center;justify-content:center;width:42px;height:42px;border:2px solid rgba(255,255,255,.9);border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,247,229,.92));box-shadow:0 4px 0 rgba(29,53,87,.12),0 8px 18px rgba(0,0,0,.12);font-size:19px;line-height:1;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .bgm-toggle.show{display:flex}
 .bgm-toggle.off{opacity:.65}
 .bgm-toggle:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(29,53,87,.12),0 5px 12px rgba(0,0,0,.1)}
@@ -232,7 +231,7 @@ const QUESTIONS = [
   {id:13,category:"2026",question:"2026 年世界杯由哪几个国家联合主办？",options:["加拿大、墨西哥、巴西","美国、加拿大、墨西哥","美国、墨西哥、阿根廷","加拿大、美国、英国"],answer:1,tip:"美国、加拿大、墨西哥三国联合主办，历史上首次。"},
   {id:14,category:"2026",question:"哪座球场成为历史上第一个举办过三届世界杯比赛的体育场？",options:["马拉卡纳球场（巴西）","温布利球场（英格兰）","阿兹特克球场（墨西哥）","玫瑰碗球场（美国）"],answer:2,tip:"墨西哥城阿兹特克球场（1970、1986、2026），首个三届世界杯球场。"},
   {id:15,category:"2026",question:"梅西和 C 罗在 2026 年世界杯共同创造了什么纪录？",options:["第 5 次参赛（并列最多）","各自打入世界杯第 20 球","首次以教练身份参赛","第 6 次参赛（历史第一）"],answer:3,tip:"两人均迎来第 6 届世界杯，成为史上首批六次参赛的球员。"},
-  {id:16,category:"fun_facts",question:"梅西的妻子叫什么名字？两人如何相识？",options:["安东内拉·罗库佐（从小认识）","索菲亚·巴尔比（大学同学）","玛丽亚·洛佩兹（经队友介绍）","卡米拉·罗德里格斯（球迷见面会）"],answer:0,tip:"梅西与安东内拉 5 岁起就认识，2017 年结婚，育有三子。"},
+  {id:16,category:"fun_facts",question:"梅西的妻子叫什么名字？",options:["安东内拉·罗库佐（从小认识）","索菲亚·巴尔比（大学同学）","玛丽亚·洛佩兹（经队友介绍）","卡米拉·罗德里格斯（球迷见面会）"],answer:0,tip:"梅西与安东内拉 5 岁起就认识，2017 年结婚，育有三子。"},
   {id:17,category:"fun_facts",question:"2026 年世界杯官方歌曲《Dai Dai》由哪两位歌手共同演唱？",options:["Dua Lipa 与 Bad Bunny","夏奇拉与 Burna Boy","The Weeknd 与 Rosalía","BTS 与 Blackpink"],answer:1,tip:"哥伦比亚歌手夏奇拉与尼日利亚歌手 Burna Boy 演唱，「Dai Dai」在意大利语中意为「加油」。"},
   {id:18,category:"fun_facts",question:"挪威球星哈兰德的父亲也曾踢过职业足球，以下哪项描述正确？",options:["他父亲司职门将，效力过皇马","他父亲是挪威国家队主帅","他父亲曾在英超踢球，代表挪威出场 34 次","他父亲从未踢过职业足球"],answer:2,tip:"阿尔夫-因格·哈兰德效力过诺丁汉森林、利兹联和曼城，挪威国家队 34 场。"},
   {id:19,category:"fun_facts",question:"2026 年世界杯是挪威时隔多少年重返世界杯决赛圈？",options:["20 年","32 年","16 年","28 年"],answer:3,tip:"挪威上一次参加世界杯是 1998 年，在哈兰德带领下时隔 28 年重返。"},
