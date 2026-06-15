@@ -74,7 +74,7 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 .quiz-card .q-num{font-size:12px;font-weight:700;color:#E63946;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
 .quiz-card .q-text{font-size:19px;font-weight:700;line-height:1.5;color:#1D3557}
 
-.quiz-options{display:flex;flex-direction:column;gap:10px;flex-shrink:0;opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .28s ease,transform .28s ease}
+.quiz-options{display:flex;flex-direction:column;gap:10px;flex-shrink:0;opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .28s ease,transform .28s ease}
 .quiz-options.show{opacity:1;transform:translateY(0);pointer-events:auto}
 .quiz-options .opt{display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,255,255,.88);border:2px solid rgba(0,0,0,.06);border-radius:14px;font-size:16px;font-weight:600;color:#1D3557;cursor:pointer;transition:background .2s,border-color .2s,transform .1s}
 .quiz-options .opt:active{transform:scale(.98)}
@@ -123,6 +123,8 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 .home-btn::before{content:"";width:18px;height:18px;border-radius:50%;background:url('./assets/飞行足球_抠图透明.png') center/contain no-repeat;display:block;box-shadow:0 1px 0 rgba(255,255,255,.8)}
 .home-btn.show{display:flex}
 .home-btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(29,53,87,.12),0 6px 16px rgba(0,0,0,.1)}
+.toast-note{position:fixed;left:50%;bottom:24px;z-index:120;transform:translate(-50%,18px);opacity:0;pointer-events:none;padding:10px 16px;border-radius:999px;background:rgba(29,53,87,.92);color:#fff;font-size:14px;font-weight:800;box-shadow:0 8px 22px rgba(0,0,0,.18);transition:opacity .22s ease,transform .22s ease}
+.toast-note.show{opacity:1;transform:translate(-50%,0)}
 
 @keyframes starPop{0%{transform:scale(0) rotate(-30deg)}60%{transform:scale(1.4) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
 @keyframes boySway{0%,100%{transform:translateX(-50%) rotate(-2deg)}50%{transform:translateX(calc(-50% + 8px)) rotate(2deg)}}
@@ -203,6 +205,7 @@ body{background:#F5F0E8;color:#1D3557;-webkit-tap-highlight-color:transparent;us
 </div>
 
 <button class="home-btn" id="btn-home" type="button">回首页</button>
+<div class="toast-note" id="toast-note"></div>
 <canvas id="poster-canvas" width="750" height="1334"></canvas>
 
 <script>
@@ -315,6 +318,7 @@ const splashVideo = $('splash-video');
 const feedbackToast = $('feedback-toast');
 const homeBtn = $('btn-home');
 const loadingScreen = $('loading-screen');
+const toastNote = $('toast-note');
 
 function switchScreen(name) {
   [screenSplash,screenQuiz,screenResult].forEach(s => s.classList.remove('active'));
@@ -351,6 +355,13 @@ function flashButton(btn, text) {
   const old = btn.textContent;
   btn.textContent = text;
   setTimeout(() => { btn.textContent = old; }, 1400);
+}
+
+function showToast(text) {
+  toastNote.textContent = text;
+  toastNote.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toastNote.classList.remove('show'), 1600);
 }
 
 function downloadBlob(blob, filename) {
@@ -401,11 +412,12 @@ function startQuiz() {
 function renderQuestion() {
   const q = QUESTIONS[state.idx];
   const card = $('quiz-card');
+  const opts = $('quiz-options');
+  opts.classList.remove('show');
   $('q-num').textContent = `第 ${state.idx + 1} 题`;
   $('q-text').textContent = q.question;
   $('q-count').textContent = `${state.idx + 1}/20`;
   $('bar-fill').style.width = `${(state.idx / 20) * 100}%`;
-  const opts = $('quiz-options');
   opts.innerHTML = '';
   const shuffledOptions = shuffleArray(q.options.map((option, originalIndex) => ({ option, originalIndex })));
   shuffledOptions.forEach((item, i) => {
@@ -419,6 +431,7 @@ function renderQuestion() {
   card.classList.remove('slide-in','slide-out');
   void card.offsetWidth;
   card.classList.add('slide-in');
+  setTimeout(() => opts.classList.add('show'), 330);
   state.answering = false;
 }
 
@@ -507,39 +520,37 @@ async function generatePoster(score, title) {
   try {
     const mascot = new Image();
     await new Promise((resolve) => { mascot.onload = resolve; mascot.onerror = resolve; mascot.src = './assets/卡通IP吉祥物_透明.png'; });
-    if (mascot.width > 0) ctx.drawImage(mascot, W/2 - 74, 170, 148, 148);
+    if (mascot.width > 0) ctx.drawImage(mascot, W/2 - 62, 140, 124, 124);
   } catch(e) {}
   ctx.fillStyle = '#1D3557';
-  ctx.font = '900 58px PingFang SC, Hiragino Sans GB, Heiti SC, sans-serif';
+  ctx.font = '900 54px PingFang SC, Hiragino Sans GB, Heiti SC, sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('世界杯球迷挑战', W/2, 370);
+  ctx.fillText('世界杯球迷挑战', W/2, 320);
   ctx.fillStyle = '#E63946';
-  ctx.font = '900 132px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText(score + '/20', W/2, 530);
+  ctx.font = '900 128px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText(score + '/20', W/2, 470);
   ctx.fillStyle = '#457B9D';
-  ctx.font = '800 34px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText(`答对 ${score} / 20 道题`, W/2, 590);
+  ctx.font = '800 32px -apple-system,BlinkMacSystemFont,sans-serif';
+  ctx.fillText(`答对 ${score} / 20 道题`, W/2, 532);
   ctx.fillStyle = '#1D3557';
-  ctx.font = '900 52px PingFang SC, Hiragino Sans GB, Heiti SC, sans-serif';
-  ctx.fillText(resultName, W/2, 695);
-  ctx.font = '58px sans-serif';
+  ctx.font = '900 50px PingFang SC, Hiragino Sans GB, Heiti SC, sans-serif';
+  ctx.fillText(resultName, W/2, 642);
+  ctx.font = '56px sans-serif';
   ctx.fillStyle = '#E9C46A';
-  ctx.fillText('★'.repeat(title.stars) + '☆'.repeat(5 - title.stars), W/2, 772);
+  ctx.fillText('★'.repeat(title.stars) + '☆'.repeat(5 - title.stars), W/2, 720);
   ctx.fillStyle = '#6A994E';
   ctx.font = '28px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText(title.msg, W/2, 840);
+  ctx.fillText(title.msg, W/2, 790);
   ctx.strokeStyle = 'rgba(0,0,0,0.08)';
   ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(142, 905); ctx.lineTo(W - 142, 905); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(148, 865); ctx.lineTo(W - 148, 865); ctx.stroke();
   ctx.fillStyle = '#457B9D';
   ctx.font = '800 30px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText('20 道题测测你是几级球迷', W/2, 970);
+  ctx.fillText('20 道题测测你是几级球迷', W/2, 930);
   ctx.fillStyle = '#8A8A8A';
   ctx.font = '24px -apple-system,BlinkMacSystemFont,sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#8A8A8A';
-  ctx.font = '24px -apple-system,BlinkMacSystemFont,sans-serif';
-  ctx.fillText('公众号@阿真Irene', W/2, H - 44);
+  ctx.fillText('公众号@阿真Irene', W/2, H - 86);
   posterBlob = await canvasToBlob(canvas);
   const dataUrl = canvas.toDataURL('image/png');
   $('result-poster').innerHTML = `<img src="${dataUrl}" alt="我的成绩">`;
@@ -563,10 +574,34 @@ $('btn-share').addEventListener('click', async () => {
 });
 
 $('btn-save').addEventListener('click', async () => {
+  const btn = $('btn-save');
   const dataUrl = $('result-poster').dataset.dataUrl;
-  if (!dataUrl) return;
-  const blob = posterBlob || await (await fetch(dataUrl)).blob();
-  downloadBlob(blob, '世界杯球迷挑战.png');
+  if (!dataUrl) {
+    showToast('图片还在生成');
+    return;
+  }
+  try {
+    const blob = posterBlob || await (await fetch(dataUrl)).blob();
+    if (window.showSaveFilePicker) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: '世界杯球迷挑战.png',
+        types: [{description:'PNG 图片', accept:{'image/png':['.png']}}]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      flashButton(btn, '已保存');
+      showToast('图片已保存');
+      return;
+    }
+    downloadBlob(blob, '世界杯球迷挑战.png');
+    flashButton(btn, '已开始保存');
+    showToast('已开始保存图片');
+  } catch(e) {
+    window.open(dataUrl, '_blank');
+    flashButton(btn, '已打开图片');
+    showToast('已打开图片，长按保存');
+  }
 });
 
 $('btn-retry').addEventListener('click', () => { switchScreen('splash'); });
